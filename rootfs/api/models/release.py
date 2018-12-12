@@ -152,7 +152,7 @@ class Release(UuidAuditedModel):
                 return 5000
 
             # application has registry auth - $PORT is required
-            if (creds is not None) or (settings.REGISTRY_LOCATION != 'on-cluster'):
+            if (creds is not None):
                 if envs.get('PORT', None) is None:
                     if not self.app.appsettings_set.latest().routable:
                         return None

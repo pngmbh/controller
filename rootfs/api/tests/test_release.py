@@ -13,7 +13,6 @@ from rest_framework.authtoken.models import Token
 
 from api.models import App, Release
 from scheduler import KubeHTTPException
-from api.exceptions import DeisException
 from api.tests import adapter, mock_port, DeisTransactionTestCase
 import requests_mock
 
@@ -479,7 +478,6 @@ class ReleaseTest(DeisTransactionTestCase):
             self.assertTrue(mr_terminator.called)
             self.assertEqual(mr_terminator.call_count, 1)
 
-    @override_settings(REGISTRY_LOCATION="off-cluster")
     def test_release_external_registry(self, mock_requests):
         """
         Test that get_port always returns the proper value.
@@ -491,6 +489,10 @@ class ReleaseTest(DeisTransactionTestCase):
         config_response = self.client.post('/v2/apps/{}/config'.format(app_id), body)
         self.assertEqual(config_response.status_code, 201, config_response.data)
 
+        body = {'registry': json.dumps({'username': 'bob'})}
+        response = self.client.post('/v2/apps/{}/config'.format(app_id), body)
+        self.assertEqual(response.status_code, 201, response.data)
+
         app = App.objects.get(id=app_id)
         url = '/v2/apps/{app_id}/builds'.format(**locals())
         body = {'image': 'test/autotest/example'}
@@ -499,38 +501,3 @@ class ReleaseTest(DeisTransactionTestCase):
         release = app.release_set.latest()
 
         self.assertEqual(release.get_port(), 3000)
-
-        self.assertEqual(release.image, 'test/autotest/example')
-
-    @override_settings(REGISTRY_LOCATION="off-cluster")
-    def test_release_external_registry_no_port(self, mock_requests):
-        """
-        Test that an exception is raised when registry if off-cluster but
-        no port is provided.
-        """
-        app_id = self.create_app()
-
-        app = App.objects.get(id=app_id)
-        url = '/v2/apps/{app_id}/builds'.format(**locals())
-        body = {'image': 'test/autotest/example'}
-        response = self.client.post(url, body)
-        self.assertEqual(response.status_code, 400, response.data)
-
-        with self.assertRaises(
-            DeisException,
-            msg='PORT needs to be set in the config when using a private registry'
-        ):
-            release = app.release_set.latest()
-            release.get_port()
-
-        # Set routable to false and port should be None instead of error
-        response = self.client.post(
-            '/v2/apps/{app.id}/settings'.format(**locals()),
-            {'routable': False}
-        )
-        self.assertEqual(response.status_code, 201, response.data)
-        self.assertFalse(app.appsettings_set.latest().routable)
-
-        release = app.release_set.latest()
-        port = release.get_port()
-        self.assertIsNone(port)
