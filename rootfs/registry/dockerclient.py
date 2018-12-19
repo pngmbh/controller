@@ -88,7 +88,9 @@ class DockerClient(object):
         name, tag = docker.utils.parse_repository_tag(target)
         # strip any "http://host.domain:port" prefix from the target repository name,
         # since we always publish to the Deis registry
+        logger.info("Publish Release src_name {}, src_tag {}, name {}, tag {}".format(src_name, src_tag, name, tag))
         repo, name = auth.split_repo_name(name)
+        logger.info("Publish Release repo {}, name {}".format(repo, name))
 
         # pull the source image from the registry
         # NOTE: this relies on an implementation detail of deis-builder, that
@@ -97,6 +99,8 @@ class DockerClient(object):
             repo = "{}/{}".format(self.registry, src_name)
         else:
             repo = src_name
+        logger.info("Publish Release deis_registry {}, repo {}", format(deis_registry, repo))
+        logger.info("Publish Release creds {}", format(creds))
 
         try:
             # log into pull repo
@@ -146,6 +150,7 @@ class DockerClient(object):
         try thrice to find the port before raising exception as docker-py is flaky
         """
         # image already includes the tag, so we split it out here
+        logger.info("inspect_image {}".format(target))
         repo, tag = docker.utils.parse_repository_tag(target)
 
         # make sure image is pulled locally already
@@ -160,6 +165,7 @@ class DockerClient(object):
         Due to the k8s docker image cache, we can't rely on k8s to do this
         check - see https://github.com/teamhephy/workflow/issues/78
         """
+        logger.info("check_access {} {}".format(target, creds))
         name, _ = docker.utils.parse_repository_tag(target)
         self.login(name, creds)
         self.inspect_image(target)
