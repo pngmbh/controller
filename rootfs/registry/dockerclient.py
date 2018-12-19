@@ -67,7 +67,7 @@ class DockerClient(object):
         # get the target repository name and tag
         fullname, _ = docker.utils.parse_repository_tag(target)
         logger.info("get_port {} {}".format(target, creds))
-        logger.info("get_port name {}".format(name))
+        logger.info("get_port fullname {}".format(fullname))
 
         # strip any "http://host.domain:port" prefix from the target repository name,
         # since we always publish to the Deis registry
