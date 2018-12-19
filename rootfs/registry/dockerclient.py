@@ -36,6 +36,7 @@ class DockerClient(object):
 
         # parse out the hostname since repo variable is hostname + path
         registry, _ = auth.resolve_repository_name(repository)
+        logger.info('--- auth.resolve_repository_name {} = {}'.format(repository, registry))
 
         registry_auth = {
             'username': None,
