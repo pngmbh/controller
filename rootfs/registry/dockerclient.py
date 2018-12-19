@@ -64,13 +64,17 @@ class DockerClient(object):
         """
         # get the target repository name and tag
         name, _ = docker.utils.parse_repository_tag(target)
+        logger.info("get_port {} {} {}".format(target, deis_registry, creds))
+        logger.info("get_port name {}".format(name))
 
         # strip any "http://host.domain:port" prefix from the target repository name,
         # since we always publish to the Deis registry
         repo, name = auth.split_repo_name(name)
+        logger.info("get_port repo {}, name {}".format(repo, name))
 
         # log into pull repo
         if not deis_registry:
+            logger.info("get_port logging in")
             self.login(repo, creds)
 
         info = self.inspect_image(target)
