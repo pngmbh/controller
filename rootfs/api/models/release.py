@@ -138,6 +138,9 @@ class Release(UuidAuditedModel):
 
     def check_image_access(self):
         try:
+            deis_registry = bool(self.build.source_based)
+            if deis_registry:
+                return  # we always have access to our own registry
             creds = self.get_registry_auth()
             docker_check_access(self.image, creds)
         except Exception as e:
