@@ -139,6 +139,8 @@ class Release(UuidAuditedModel):
     def check_image_access(self):
         try:
             deis_registry = bool(self.build.source_based)
+            logger.info("release check_image_access deis_registry {}".format(deis_registry))
+            logger.info("release check_image_access build {}".format(self.build))
             if deis_registry:
                 return  # we always have access to our own registry
             creds = self.get_registry_auth()
