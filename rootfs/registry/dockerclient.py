@@ -58,20 +58,19 @@ class DockerClient(object):
 
         logger.info('Successfully logged into {} with {}'.format(repository, registry_auth['username']))  # noqa
 
-    def get_port(self, target, deis_registry=False, creds=None):
+    def get_port(self, target, creds=None):
         """
         Get a port from a Docker image
         """
         # get the target repository name and tag
-        name, _ = docker.utils.parse_repository_tag(target)
+        fullname, _ = docker.utils.parse_repository_tag(target)
 
         # strip any "http://host.domain:port" prefix from the target repository name,
         # since we always publish to the Deis registry
-        repo, name = auth.split_repo_name(name)
+        repo, name = auth.split_repo_name(fullname)
 
         # log into pull repo
-        if not deis_registry:
-            self.login(repo, creds)
+        self.login(fullname, creds)
 
         info = self.inspect_image(target)
         if 'ExposedPorts' not in info['Config']:
@@ -206,8 +205,8 @@ def publish_release(source, target, deis_registry, creds=None):
     return DockerClient().publish_release(source, target, deis_registry, creds)
 
 
-def get_port(target, deis_registry, creds=None):
-    return DockerClient().get_port(target, deis_registry, creds)
+def get_port(target, creds=None):
+    return DockerClient().get_port(target, creds)
 
 
 def check_access(target, creds=None):

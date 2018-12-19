@@ -24,7 +24,7 @@ class DockerClientTest(unittest.TestCase):
         self.client = DockerClient()
 
         # Make sure login is not called when there are no creds
-        get_port('ozzy/embryo:git-f2a8020', False)
+        get_port('ozzy/embryo:git-f2a8020')
         self.assertFalse(self.client.client.login.called)
 
         creds = {
@@ -37,7 +37,7 @@ class DockerClientTest(unittest.TestCase):
         client = {}
         client['Status'] = 'Login Succeeded'
         self.client.client.login.return_value = client
-        get_port('ozzy/embryo:git-f2a8020', False, creds)
+        get_port('ozzy/embryo:git-f2a8020', creds)
         self.assertTrue(self.client.client.login.called)
         self.assertTrue(self.client.client.pull.called)
         self.assertTrue(self.client.client.inspect_image.called)
