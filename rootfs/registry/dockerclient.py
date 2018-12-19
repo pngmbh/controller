@@ -51,6 +51,7 @@ class DockerClient(object):
             raise PermissionDenied(msg)
 
         logger.info('Logging into Registry {} with username {}'.format(repository, registry_auth['username']))  # noqa
+        logger.info('--- registry_auth {}'.format(registry_auth))
         response = self.client.login(**registry_auth)
         success = response.get('Status') == 'Login Succeeded' or response.get('username') == registry_auth['username']  # noqa
         if not success:
