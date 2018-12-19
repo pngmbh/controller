@@ -65,18 +65,18 @@ class DockerClient(object):
         Get a port from a Docker image
         """
         # get the target repository name and tag
-        name, _ = docker.utils.parse_repository_tag(target)
+        fullname, _ = docker.utils.parse_repository_tag(target)
         logger.info("get_port {} {}".format(target, creds))
         logger.info("get_port name {}".format(name))
 
         # strip any "http://host.domain:port" prefix from the target repository name,
         # since we always publish to the Deis registry
-        repo, name = auth.split_repo_name(name)
+        repo, name = auth.split_repo_name(fullname)
         logger.info("get_port repo {}, name {}".format(repo, name))
 
         # log into pull repo
         logger.info("get_port logging in")
-        self.login(repo, creds)
+        self.login(fullname, creds)
 
         info = self.inspect_image(target)
         if 'ExposedPorts' not in info['Config']:
