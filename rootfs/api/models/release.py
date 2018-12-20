@@ -138,10 +138,23 @@ class Release(UuidAuditedModel):
 
     def check_image_access(self):
         try:
+            deis_registry = bool(self.build.source_based)
+            if deis_registry:
+                return  # we always have access to our own registry
             creds = self.get_registry_auth()
             docker_check_access(self.image, creds)
         except Exception as e:
             raise DeisException(str(e)) from e
+
+    def _get_private_registry_creds(self):
+        if settings.REGISTRY_LOCATION == 'off-cluster':
+            secret = self._scheduler.secret.get(
+                settings.WORKFLOW_NAMESPACE, 'registry-secret').json()
+            username = secret['data']['username']
+            password = secret['data']['password']
+            return {'username': username, 'password': password}
+        else:
+            return None
 
     def get_port(self):
         """
@@ -176,7 +189,9 @@ class Release(UuidAuditedModel):
                 return int(envs.get('PORT'))
 
             # discover port from docker image
-            port = docker_get_port(self.image, deis_registry, creds)
+            if deis_registry:
+                creds = self._get_private_registry_creds()
+            port = docker_get_port(self.image, creds)
             if port is None and self.app.appsettings_set.latest().routable:
                 msg = "Expose a port or make the app non routable by changing the process type"
                 self.app.log(msg, logging.ERROR)
